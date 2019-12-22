@@ -1,0 +1,6 @@
+<resources>
+    <string name="app_name">WT_Travel_Agency</string>
+    <string name="pretraga_text">pretraga</string>
+    <string name="postavke_racuna_text">Postavke racuna</string>
+    <string name="odjava_text">Odjavi se</string>
+</resources>

@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "623934563239",
+    "firebase_url": "https://wttravelagency-36c43.firebaseio.com",
+    "project_id": "wttravelagency-36c43",
+    "storage_bucket": "wttravelagency-36c43.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:623934563239:android:9c77ece491939b51e84c82",
+        "android_client_info": {
+          "package_name": "com.example.faruk.wt_travel_agency"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "623934563239-807tppim169v2e9a60iu56d9882q8rt9.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.faruk.wt_travel_agency",
+            "certificate_hash": "ad0341d8f1f6f202a4cfe27ccdd0a6f440979b5f"
+          }
+        },
+        {
+          "client_id": "623934563239-qioo99b5pebih2da2773l4oa4mcu7lt6.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBvST4Lz2w8VIEdfxEscWTCXmOPjvXoEy0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "623934563239-qioo99b5pebih2da2773l4oa4mcu7lt6.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
