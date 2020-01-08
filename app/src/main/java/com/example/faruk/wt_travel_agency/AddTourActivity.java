@@ -27,8 +27,7 @@ import java.util.Map;
 public class AddTourActivity extends AppCompatActivity {
 
 
-
-    //region Private Fields
+    //region Private Variables
     private EditText add_destination;
 
     private EditText add_price;
@@ -52,6 +51,9 @@ public class AddTourActivity extends AppCompatActivity {
     private  String current_user_id;
 
     //endregion
+
+    //region Logic
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -96,53 +98,40 @@ public class AddTourActivity extends AppCompatActivity {
         add_SaveBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
-                String destination = add_destination.getText().toString();
-
-                String price = add_price.getText().toString();
-
-                String departureDate = add_departure.getText().toString();
-
-                String returnDate = add_return.getText().toString();
-
                // addTour_progress.setVisibility(View.VISIBLE);
 
-                Map<String, Object> tourMap = new HashMap<>();
-
-                tourMap.put("destination",destination);
-                tourMap.put("price",price);
-                tourMap.put("departureDate",departureDate);
-                tourMap.put("returnDate",returnDate);
-                tourMap.put("user_id",current_user_id);
-
-
-
-                firebaseFirestore.collection("Tours").add(tourMap).addOnCompleteListener(new OnCompleteListener<DocumentReference>() {
-                    @Override
-                    public void onComplete(@NonNull Task<DocumentReference> task) {
-
-                        if(task.isSuccessful()){
-
-                            Toast.makeText(AddTourActivity.this,"Putovanje uspješno dodano",Toast.LENGTH_LONG).show();
-                            Intent mainPage = new Intent(AddTourActivity.this,MainActivity.class);
-                            startActivity(mainPage);
-                            finish();//ovo onemogucava back button ?
-
-
-                        }else {
-
-                        }
-                       // addTour_progress.setVisibility(View.INVISIBLE);
-                    }
-                });
-
+                SaveTour(add_destination.getText().toString(),add_price.getText().toString(),add_departure.getText().toString(),add_return.getText().toString(),current_user_id);
             }
         });
-
-
-
-
-
-
     }
+    //endregion
+
+    //region Helper methods
+
+    private void SaveTour(String destination,String price,String departureDate,String returnDate, String current_user_id ) {
+
+        Map<String, Object> tourMap = new HashMap<>();
+        tourMap.put("destination",destination);
+        tourMap.put("price",price);
+        tourMap.put("departureDate",departureDate);
+        tourMap.put("returnDate",returnDate);
+        tourMap.put("user_id",current_user_id);
+
+        firebaseFirestore.collection("Tours").add(tourMap).addOnCompleteListener(new OnCompleteListener<DocumentReference>() {
+            @Override
+            public void onComplete(@NonNull Task<DocumentReference> task) {
+
+                if(task.isSuccessful()){
+                    Toast.makeText(AddTourActivity.this,"Putovanje uspješno dodano",Toast.LENGTH_LONG).show();
+                    Intent mainPage = new Intent(AddTourActivity.this,MainActivity.class);
+                    startActivity(mainPage);
+                    finish();//ovo onemogucava back button ?
+                }else {
+
+                }
+                // addTour_progress.setVisibility(View.INVISIBLE);
+            }
+        });
+    }
+//endregion
 }

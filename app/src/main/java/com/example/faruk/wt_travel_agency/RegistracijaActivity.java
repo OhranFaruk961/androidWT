@@ -19,7 +19,7 @@ import com.google.firebase.auth.FirebaseUser;
 
 public class RegistracijaActivity extends AppCompatActivity {
 
-
+   //region Private Variables
     private EditText reg_email_field;
     private  EditText reg_pass_field;
     private  EditText reg_confirm_pass_field;
@@ -28,14 +28,16 @@ public class RegistracijaActivity extends AppCompatActivity {
     private ProgressBar reg_progress;
 
     private FirebaseAuth auth;
+//endregion
 
+    //region Logic
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_registracija);
 
+       //region Initialization
         auth = FirebaseAuth.getInstance();
-
 
         reg_email_field = (EditText) findViewById(R.id.reg_email);
 
@@ -47,81 +49,65 @@ public class RegistracijaActivity extends AppCompatActivity {
 
         reg_progress = (ProgressBar) findViewById(R.id.registration_progress);
 
-
+        //endregion
 
         reg_btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
-                String email = reg_email_field.getText().toString();
-                String pass = reg_pass_field.getText().toString();
-
-                String confirm_pass = reg_confirm_pass_field.getText().toString();
-
-                if (!TextUtils.isEmpty(email)&& !TextUtils.isEmpty(pass) && !TextUtils.isEmpty(confirm_pass)) {
-
-                    if(pass.equals(confirm_pass)) {
-
-                        reg_progress.setVisibility(View.VISIBLE);
-
-                        auth.createUserWithEmailAndPassword(email,pass).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
-                            @Override
-                            public void onComplete(@NonNull Task<AuthResult> task) {
-
-                                if(task.isSuccessful()){
-                                    sendToSetup();
-                                }else {
-
-                                    String errorMessage = task.getException().getMessage();
-                                    Toast.makeText(RegistracijaActivity.this,errorMessage, Toast.LENGTH_LONG).show();
-                                }
-                                reg_progress.setVisibility(View.INVISIBLE);
-
-                            }
-                        });
-
-                    } else {
-                        Toast.makeText(RegistracijaActivity.this,"Lozinke se ne slažu ", Toast.LENGTH_LONG).show();
-
-                    }
-                }
-
-
+                Registration(reg_email_field.getText().toString(),reg_pass_field.getText().toString(),reg_confirm_pass_field.getText().toString());
             }
         });
-
-
     }
 
     @Override
     protected void onStart() {
             super.onStart();
-
         FirebaseUser currentUser = auth.getCurrentUser();
-
         if (currentUser != null) {
         sendToMain();
         }
     }
 
+    //endregion
 
-
-
+    //region Helper Methods
     private void sendToMain() {
-
         Intent mainIntent = new Intent(RegistracijaActivity.this,MainActivity.class);
         startActivity(mainIntent);
         finish();
-
     }
-
     private void sendToSetup() {
-
         Intent mainIntent = new Intent(RegistracijaActivity.this,UserNameActivity.class);
         startActivity(mainIntent);
         finish();
-
-
     }
+
+    private  void Registration(String email, String pass, String confirm_pass){
+
+        if (!TextUtils.isEmpty(email)&& !TextUtils.isEmpty(pass) && !TextUtils.isEmpty(confirm_pass)) {
+            if(pass.equals(confirm_pass)) {
+
+                reg_progress.setVisibility(View.VISIBLE);
+
+                auth.createUserWithEmailAndPassword(email,pass).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<AuthResult> task) {
+
+                        if(task.isSuccessful()){
+                            sendToSetup();
+                        }else {
+                            String errorMessage = task.getException().getMessage();
+                            Toast.makeText(RegistracijaActivity.this,errorMessage, Toast.LENGTH_LONG).show();
+                        }
+                        reg_progress.setVisibility(View.INVISIBLE);
+                    }
+                });
+
+            } else {
+                Toast.makeText(RegistracijaActivity.this,"Lozinke se ne slažu ", Toast.LENGTH_LONG).show();
+            }
+        }
+    }
+    //endregion
 }
 

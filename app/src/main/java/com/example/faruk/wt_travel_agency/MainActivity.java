@@ -15,11 +15,12 @@ import com.google.firebase.auth.FirebaseUser;
 
 public class MainActivity extends AppCompatActivity {
 
+    //region Private Variables
     private Toolbar mainToolbar;
     private  FirebaseAuth auth;
-
     private FloatingActionButton addBtn;
 
+//endregion
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,43 +46,29 @@ public class MainActivity extends AppCompatActivity {
         super.onStart();
 
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
-
         mainToolbar = (Toolbar) findViewById(R.id.main_toolbar);
         setSupportActionBar(mainToolbar);
         getSupportActionBar().setTitle("WT");
-
-
         if (currentUser == null) {
-
             sendToLogin();
-
     }
-
-
     }
-
-
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu,menu);
-
         return true;
     }
-
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-
         switch (item.getItemId()){
 
             case  R.id.log_out:
                 logOut();
-
                 return  true;
 
             case R.id.account_settings:
                 sendToAccountSettings();
-
                 return  true;
 
                 default:
@@ -89,12 +76,11 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    //region Helper methods
     private void logOut() {
         auth.signOut();
         sendToLogin();
     }
-
-
     private void sendToAccountSettings() {
         Intent settingsIntent = new Intent(MainActivity.this,UserNameActivity.class);
         startActivity(settingsIntent);
@@ -102,7 +88,7 @@ public class MainActivity extends AppCompatActivity {
     private void sendToLogin() {
         Intent loginIntent = new Intent(MainActivity.this,LoginActivity.class); //prebacuje nas na login
         startActivity(loginIntent);
-
     }
+    //endregion
 
 }

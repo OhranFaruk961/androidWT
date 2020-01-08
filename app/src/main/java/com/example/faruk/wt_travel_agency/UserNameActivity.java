@@ -81,16 +81,11 @@ public class UserNameActivity extends AppCompatActivity implements PopupMenu.OnM
             @Override
             public void onComplete(@NonNull Task<DocumentSnapshot> task) {
                 if (task.isSuccessful()) {
-
-
                     if (task.getResult().exists()) { // ako si vec logiran ispise ti username
 
                         userName.setText(task.getResult().getString("name"));
-
                     }
-
                 } else {
-
                     String error = task.getException().getMessage();
                     Toast.makeText(UserNameActivity.this, "Greška na serveru", Toast.LENGTH_LONG).show();
                 }
@@ -205,6 +200,8 @@ public class UserNameActivity extends AppCompatActivity implements PopupMenu.OnM
         }
     }
 
+
+    //moje funkcije
     private void selectImage() {
         PopupMenu popupMenu = new PopupMenu(UserNameActivity.this, setupImage);
         MenuInflater menuInflater = popupMenu.getMenuInflater();

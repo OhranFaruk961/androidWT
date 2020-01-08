@@ -19,7 +19,7 @@ import com.google.firebase.auth.FirebaseUser;
 
 public class  LoginActivity extends AppCompatActivity {
 
-
+   //region Private Variables
     private EditText loginEmailText;
     private  EditText loginPasswordText;
     private Button loginBtn;
@@ -28,11 +28,16 @@ public class  LoginActivity extends AppCompatActivity {
 
     private ProgressBar loginProgress;
 
+    //endregion
+
+
+    //region Logic
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
+        //region Initialization
         auth = FirebaseAuth.getInstance();
 
         loginEmailText  = (EditText) findViewById(R.id.reg_email);
@@ -45,6 +50,8 @@ public class  LoginActivity extends AppCompatActivity {
 
         loginProgress = (ProgressBar) findViewById(R.id.registration_progress);
 
+        //endregion
+
         registrationBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -55,32 +62,7 @@ public class  LoginActivity extends AppCompatActivity {
         loginBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
-                String prijavaEmail = loginEmailText.getText().toString();
-                String  prijavaLozinka = loginPasswordText.getText().toString();
-
-                if (!TextUtils.isEmpty(prijavaEmail)&& !TextUtils.isEmpty(prijavaLozinka))
-                {
-                    loginProgress.setVisibility(View.VISIBLE);
-
-                    auth.signInWithEmailAndPassword(prijavaEmail,prijavaLozinka).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
-                        @Override
-                        public void onComplete(@NonNull Task<AuthResult> task) {
-
-                            if (task.isSuccessful()){
-                                sendToMain();
-
-                            }else    {
-                           String errorMessage = task.getException().getMessage();
-                           Toast.makeText(LoginActivity.this,"Error : "+ errorMessage,Toast.LENGTH_LONG     ).show();
-
-                            }
-                            loginProgress.setVisibility(View.INVISIBLE);
-
-                        }
-                    });
-                }
-
+                Login(loginEmailText.getText().toString(),loginPasswordText.getText().toString());
             }
         });
     }
@@ -88,15 +70,17 @@ public class  LoginActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-
         FirebaseUser currentUser = auth.getCurrentUser();
 
         if(currentUser != null)
         {
             sendToMain();
         }
-
     }
+
+    //endregion
+
+    //region Helper methods
 
 
     private void sendToMain() {
@@ -112,5 +96,29 @@ public class  LoginActivity extends AppCompatActivity {
         startActivity(registerIntent);
         finish();
     }
+
+    private  void Login(String prijavaEmail, String prijavaLozinka){
+
+        if (!TextUtils.isEmpty(prijavaEmail)&& !TextUtils.isEmpty(prijavaLozinka)) //ako mejl i password nisu prazni, upali progress bar i logiraj
+        {
+            loginProgress.setVisibility(View.VISIBLE);
+
+            auth.signInWithEmailAndPassword(prijavaEmail,prijavaLozinka).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+                @Override
+                public void onComplete(@NonNull Task<AuthResult> task) {
+                    if (task.isSuccessful()){
+                        sendToMain();
+                    }
+                    else{
+                        String errorMessage = task.getException().getMessage();
+                        Toast.makeText(LoginActivity.this,"Error : "+ errorMessage,Toast.LENGTH_LONG     ).show();
+                    }
+                    loginProgress.setVisibility(View.INVISIBLE);
+                }
+            });
+        }
+    }
+
+    //endregion
 
 }
