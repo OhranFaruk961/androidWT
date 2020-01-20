@@ -2,15 +2,24 @@ package com.example.faruk.wt_travel_agency;
 
 import android.*;
 import android.Manifest;
+import android.annotation.SuppressLint;
+import android.content.ContentUris;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Environment;
+import android.provider.DocumentsContract;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.PopupMenu;
@@ -25,6 +34,7 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
 import com.google.android.gms.tasks.Continuation;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -38,13 +48,21 @@ import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
 import java.io.File;
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
+
+import id.zelory.compressor.Compressor;
 
 public class UserNameActivity extends AppCompatActivity implements PopupMenu.OnMenuItemClickListener {
 
     private static final int REQUEST_STORAGE = 12340;
     private static final int PICK_IMAGE = 12341;
+    private static final int CAPTURE_IMAGE = 12342;
 
     private ImageView setupImage;
 
@@ -54,7 +72,9 @@ public class UserNameActivity extends AppCompatActivity implements PopupMenu.OnM
     private StorageReference storageReference;
     private FirebaseFirestore db;
     private String user_id;
+    private File photoFileDoc = null;
     private Uri image_path;
+    private String mImageFileLocation = "";
 
 
     @Override
@@ -100,58 +120,64 @@ public class UserNameActivity extends AppCompatActivity implements PopupMenu.OnM
                 if (!TextUtils.isEmpty(user_name)) {
                     user_id = firebaseAuth.getCurrentUser().getUid();
 
-                    Uri file = image_path;
-                    final StorageReference storageImageReference = storageReference.child("image/" + file.getLastPathSegment());
-                    UploadTask uploadTask = storageImageReference.putFile(file);
+                    File resizeImage = null;
+                    try {
+                        resizeImage = new Compressor(UserNameActivity.this).compressToFile(photoFileDoc);
 
-                    Task<Uri> urlTask = uploadTask.continueWithTask(new Continuation<UploadTask.TaskSnapshot, Task<Uri>>() {
-                        @Override
-                        public Task<Uri> then(@NonNull Task<UploadTask.TaskSnapshot> task) throws Exception {
-                            if (!task.isSuccessful()) {
-                                throw task.getException();
+                        Uri imageUri = Uri.fromFile(resizeImage);
+                        final StorageReference storageImageReference = storageReference.child("image/" + imageUri.getLastPathSegment() + System.currentTimeMillis());
+                        UploadTask uploadTask = storageImageReference.putFile(imageUri);
+
+                        Task<Uri> urlTask = uploadTask.continueWithTask(new Continuation<UploadTask.TaskSnapshot, Task<Uri>>() {
+                            @Override
+                            public Task<Uri> then(@NonNull Task<UploadTask.TaskSnapshot> task) throws Exception {
+                                if (!task.isSuccessful()) {
+                                    throw task.getException();
+                                }
+
+                                // Continue with the task to get the download URL
+                                return storageImageReference.getDownloadUrl();
                             }
+                        });
+                        urlTask.addOnCompleteListener(new OnCompleteListener<Uri>() {
+                            @Override
+                            public void onComplete(@NonNull Task<Uri> task) {
+                                if (task.isSuccessful()) {
+                                    Uri downloadUri = task.getResult();
 
-                            // Continue with the task to get the download URL
-                            return storageImageReference.getDownloadUrl();
-                        }
-                    });
-                    urlTask.addOnCompleteListener(new OnCompleteListener<Uri>() {
-                        @Override
-                        public void onComplete(@NonNull Task<Uri> task) {
-                            if (task.isSuccessful()) {
-                                Uri downloadUri = task.getResult();
+                                    Map<String, String> userMap = new HashMap<>();
 
-                                Map<String, String> userMap = new HashMap<>();
+                                    userMap.put("name", user_name);
+                                    userMap.put("image", String.valueOf(downloadUri));
 
-                                userMap.put("name", user_name);
-                                userMap.put("image", String.valueOf(downloadUri));
+                                    db.collection("Users").document(user_id).set(userMap).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                        @Override
+                                        public void onComplete(@NonNull Task<Void> task) {
 
-                                db.collection("Users").document(user_id).set(userMap).addOnCompleteListener(new OnCompleteListener<Void>() {
-                                    @Override
-                                    public void onComplete(@NonNull Task<Void> task) {
+                                            if (task.isSuccessful()) {
 
-                                        if (task.isSuccessful()) {
+                                                Toast.makeText(UserNameActivity.this, "Korisnicko ime snimljeno", Toast.LENGTH_LONG).show();
+                                                Intent mainIntent = new Intent(UserNameActivity.this, MainActivity.class);
+                                                startActivity(mainIntent);
+                                                finish();
 
-                                            Toast.makeText(UserNameActivity.this, "Korisnicko ime snimljeno", Toast.LENGTH_LONG).show();
-                                            Intent mainIntent = new Intent(UserNameActivity.this, MainActivity.class);
-                                            startActivity(mainIntent);
-                                            finish();
+                                            } else {
+                                                String error = task.getException().getMessage();
+                                                Toast.makeText(UserNameActivity.this, "Greška na serveru", Toast.LENGTH_LONG).show();
+                                            }
 
-                                        } else {
-                                            String error = task.getException().getMessage();
-                                            Toast.makeText(UserNameActivity.this, "Greška na serveru", Toast.LENGTH_LONG).show();
+
                                         }
-
-
-                                    }
-                                });
-                            } else {
-                                String error = task.getException().getMessage();
-                                Toast.makeText(UserNameActivity.this, "Greška na serveru", Toast.LENGTH_LONG).show();
+                                    });
+                                } else {
+                                    String error = task.getException().getMessage();
+                                    Toast.makeText(UserNameActivity.this, "Greška na serveru", Toast.LENGTH_LONG).show();
+                                }
                             }
-                        }
-                    });
-
+                        });
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                 }
 
 
@@ -228,6 +254,52 @@ public class UserNameActivity extends AppCompatActivity implements PopupMenu.OnM
     }
 
     private void openCamera() {
+        Intent openCamera = new Intent();
+        openCamera.setAction(MediaStore.ACTION_IMAGE_CAPTURE);
+
+        try {
+            photoFileDoc = createImageFile();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        String authorities = getPackageName() + ".fileprovider";
+        if (photoFileDoc != null) {
+            image_path = FileProvider.getUriForFile(UserNameActivity.this, authorities, photoFileDoc);
+        }
+
+        openCamera.putExtra(MediaStore.EXTRA_OUTPUT, image_path);
+        startActivityForResult(openCamera, CAPTURE_IMAGE);
+    }
+
+    File createImageFile() throws IOException {
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        String imageName = "Images " + timeStamp + "_";
+
+        File storageDirectory = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+
+        File image = File.createTempFile(imageName, ".jpg", storageDirectory);
+        mImageFileLocation = image.getAbsolutePath();
+
+        return image;
+    }
+
+    private void reduceImageSizeDocProfile() {
+        int targetImageViewWidth = setupImage.getWidth();
+        int targetImageViewHeight = setupImage.getHeight();
+
+        BitmapFactory.Options bmo = new BitmapFactory.Options();
+        bmo.inJustDecodeBounds = true;
+        BitmapFactory.decodeFile(mImageFileLocation, bmo);
+        int cameraImageWidth = bmo.outWidth;
+        int cameraImageHeight = bmo.outHeight;
+
+        int scaleImage = Math.max(cameraImageWidth / targetImageViewWidth, cameraImageHeight / targetImageViewHeight);
+        bmo.inSampleSize = scaleImage;
+
+        bmo.inJustDecodeBounds = false;
+
+        Bitmap reduceBitmap = BitmapFactory.decodeFile(mImageFileLocation, bmo);
+        setupImage.setImageBitmap(reduceBitmap);
 
     }
 
@@ -241,20 +313,94 @@ public class UserNameActivity extends AppCompatActivity implements PopupMenu.OnM
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-       if (requestCode == PICK_IMAGE && resultCode == RESULT_OK) {
-           //dobijemo image, uzmemo cijeli path od slike (treba za upload slike na firebase storage)
-           image_path = data.getData();
-           setupImage.setImageURI(image_path);
-       }
+        if (requestCode == PICK_IMAGE && resultCode == RESULT_OK) {
+            //dobijemo image, uzmemo cijeli path od slike (treba za upload slike na firebase storage)
+            if (data == null) {
+                Toast.makeText(UserNameActivity.this, "Error occured", Toast.LENGTH_SHORT).show();
+            } else {
+                image_path = data.getData();
+                assert image_path != null;
+                if (image_path.toString().contains("com.google.android.apps.docs.storage")) {
+                    Toast.makeText(UserNameActivity.this, "You cannot select image from Google Drive", Toast.LENGTH_LONG).show();
+
+                } else {
+
+                    try {
+                        photoFileDoc = new File(Objects.requireNonNull(getFilePath(UserNameActivity.this, image_path)));
+                    } catch (URISyntaxException e) {
+                        e.printStackTrace();
+                    }
+
+                    Glide.with(getApplicationContext()).load(image_path).into(setupImage);
+
+                }
+
+            }
+        } else if (requestCode == CAPTURE_IMAGE && resultCode == RESULT_OK) {
+            reduceImageSizeDocProfile();
+        }
     }
 
-    public String getRealPathFromURI(Uri uri) {
-        String[] projection = {MediaStore.Images.Media.DATA};
-        @SuppressWarnings("deprecation")
-        Cursor cursor = managedQuery(uri, projection, null, null, null);
-        int column_index = cursor
-                .getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
-        cursor.moveToFirst();
-        return cursor.getString(column_index);
+    @SuppressLint("NewApi")
+    public static String getFilePath(Context context, Uri uri) throws URISyntaxException {
+        String selection = null;
+        String[] selectionArgs = null;
+        // Uri is different in versions after KITKAT (Android 4.4), we need to
+        if (Build.VERSION.SDK_INT >= 19 && DocumentsContract.isDocumentUri(context.getApplicationContext(), uri)) {
+            if (isExternalStorageDocument(uri)) {
+                final String docId = DocumentsContract.getDocumentId(uri);
+                final String[] split = docId.split(":");
+                return Environment.getExternalStorageDirectory() + "/" + split[1];
+            } else if (isDownloadsDocument(uri)) {
+                final String id = DocumentsContract.getDocumentId(uri);
+                uri = ContentUris.withAppendedId(
+                        Uri.parse("content://downloads/public_downloads"), Long.valueOf(id));
+            } else if (isMediaDocument(uri)) {
+                final String docId = DocumentsContract.getDocumentId(uri);
+                final String[] split = docId.split(":");
+                final String type = split[0];
+                if ("image".equals(type)) {
+                    uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
+                } else if ("video".equals(type)) {
+                    uri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
+                } else if ("audio".equals(type)) {
+                    uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
+                }
+                selection = "_id=?";
+                selectionArgs = new String[]{
+                        split[1]
+                };
+            }
+        }
+        if ("content".equalsIgnoreCase(uri.getScheme())) {
+            String[] projection = {
+                    MediaStore.Images.Media.DATA
+            };
+            Cursor cursor = null;
+            try {
+                cursor = context.getContentResolver()
+                        .query(uri, projection, selection, selectionArgs, null);
+                int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
+                if (cursor.moveToFirst()) {
+                    return cursor.getString(column_index);
+                }
+            } catch (Exception e) {
+            }
+        } else if ("file".equalsIgnoreCase(uri.getScheme())) {
+            return uri.getPath();
+        }
+        return null;
+    }
+
+    public static boolean isExternalStorageDocument(Uri uri) {
+        return "com.android.externalstorage.documents".equals(uri.getAuthority());
+    }
+
+    public static boolean isDownloadsDocument(Uri uri) {
+        return "com.android.providers.downloads.documents".equals(uri.getAuthority());
+    }
+
+    public static boolean isMediaDocument(Uri uri) {
+        return "com.android.providers.media.documents".equals(uri.getAuthority());
     }
 }

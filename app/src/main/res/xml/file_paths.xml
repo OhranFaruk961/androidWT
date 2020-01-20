@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright (c) 2018.  bubblenet® Private Limited. All rights reserved.
+  ~ Proprietary and confidential.
+  ~ Questions, contact sramakrishnan@bubblenet.in
+  ~ Last modified 9/6/18 9:30 AM.
+  ~ Unauthorized copying of this file, via any medium is strictly prohibited .
+  -->
+
+
+<paths>
+    <external-path name="mediaImages" path="." />
+</paths>
