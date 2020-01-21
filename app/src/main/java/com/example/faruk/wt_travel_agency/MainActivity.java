@@ -2,6 +2,8 @@ package com.example.faruk.wt_travel_agency;
 
 import android.content.Intent;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
@@ -17,8 +19,10 @@ public class MainActivity extends AppCompatActivity {
 
     //region Private Variables
     private Toolbar mainToolbar;
-    private  FirebaseAuth auth;
+    private FirebaseAuth auth;
     private FloatingActionButton addBtn;
+    private DrawerLayout mDrawerLayout;
+    private ActionBarDrawerToggle mToggle;
 
 //endregion
 
@@ -27,18 +31,15 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        mDrawerLayout = (DrawerLayout) findViewById(R.id.drawerLayout);
+        mToggle = new ActionBarDrawerToggle(this, mDrawerLayout, R.string.zatvori, R.string.otvori);
+        mDrawerLayout.addDrawerListener(mToggle);
+        mToggle.syncState();
+        mainToolbar = (Toolbar) findViewById(R.id.navigation_actionbar);
+        setSupportActionBar(mainToolbar);
+        getSupportActionBar().setTitle("WT Travel Agency");
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         auth = FirebaseAuth.getInstance();
-
-        addBtn = findViewById(R.id.addBtn);
-
-        addBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-
-             Intent newTourIntent = new  Intent(MainActivity.this,AddTourActivity.class);
-            startActivity(newTourIntent);
-            }
-        });
     }
 
     @Override
@@ -46,34 +47,28 @@ public class MainActivity extends AppCompatActivity {
         super.onStart();
 
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
-        mainToolbar = (Toolbar) findViewById(R.id.main_toolbar);
+        mainToolbar = (Toolbar) findViewById(R.id.navigation_actionbar);
         setSupportActionBar(mainToolbar);
-        getSupportActionBar().setTitle("WT");
-        if (currentUser == null) {
-            sendToLogin();
-    }
+       // getSupportActionBar().setTitle("WT");
+       // if (currentUser == null) {
+         //   sendToLogin();
+    //}
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu,menu);
-        return true;
-    }
+   // @Override
+   // public boolean onCreateOptionsMenu(Menu menu) {
+     //   getMenuInflater().inflate(R.menu.menu,menu);
+      //  return true;
+    //}
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()){
 
-            case  R.id.log_out:
-                logOut();
-                return  true;
+       if(mToggle.onOptionsItemSelected(item)){
 
-            case R.id.account_settings:
-                sendToAccountSettings();
-                return  true;
+           return  true;
+       }
 
-                default:
-                    return  false;
-        }
+       return  super.onOptionsItemSelected(item);
     }
 
     //region Helper methods

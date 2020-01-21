@@ -2,15 +2,18 @@
 <menu xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:android="http://schemas.android.com/apk/res/android">
 
+
     <item
-        android:id="@+id/search"
-        android:icon="@mipmap/pretraga"
-        android:title="@string/pretraga_text"
-        app:showAsAction="always" />
-    <item
+        android:icon="@mipmap/baseline_person_pin_black_18dp"
         android:id="@+id/account_settings"
         android:title="@string/postavke_racuna_text" />
     <item
+        android:icon="@mipmap/baseline_event_available_black_18dp"
+        android:id="@+id/reservation"
+        android:title="Aktivne rezervacije" />
+
+    <item
+        android:icon="@mipmap/baseline_settings_power_black_18dp"
         android:id="@+id/log_out"
         android:title="@string/odjava_text" />
 </menu>
