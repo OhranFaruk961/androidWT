@@ -14,8 +14,14 @@
         <include
             layout="@layout/navigation_actionbar"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
+              android:layout_height="wrap_content"/>
 
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/tour_list"
+            android:layout_width="409dp"
+            android:layout_height="673dp"
+            tools:layout_editor_absoluteX="1dp"
+            tools:layout_editor_absoluteY="57dp" />
 
 
     </android.support.constraint.ConstraintLayout>

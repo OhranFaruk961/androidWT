@@ -63,9 +63,9 @@ public class RegistracijaActivity extends AppCompatActivity {
     protected void onStart() {
             super.onStart();
         FirebaseUser currentUser = auth.getCurrentUser();
-        if (currentUser != null) {
-        sendToMain();
-        }
+     //   if (currentUser != null) {
+       // sendToMain();
+        //}
     }
 
     //endregion
