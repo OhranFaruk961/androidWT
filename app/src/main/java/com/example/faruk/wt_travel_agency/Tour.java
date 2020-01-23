@@ -1,27 +1,25 @@
 package com.example.faruk.wt_travel_agency;
 
-import android.widget.EditText;
-
 public class Tour {
 
     private String destination;
 
     private String price;
 
-    private String departure;
+    private String departureDate;
 
     private String returnDate;
 
-    private String imge_url;
+    private String image;
 
-    public Tour(){};
+    public Tour(){}
 
-    public Tour(String destination, String price, String departure, String returnDate, String imge_url) {
+    public Tour(String destination, String price, String departureDate, String returnDate, String image) {
         this.destination = destination;
         this.price = price;
-        this.departure = departure;
+        this.departureDate = departureDate;
         this.returnDate = returnDate;
-        this.imge_url = imge_url;
+        this.image = image;
     }
 
     public String getDestination() {
@@ -40,12 +38,12 @@ public class Tour {
         this.price = price;
     }
 
-    public String getDeparture() {
-        return departure;
+    public String getDepartureDate() {
+        return departureDate;
     }
 
-    public void setDeparture(String departure) {
-        this.departure = departure;
+    public void setDepartureDate(String departureDate) {
+        this.departureDate = departureDate;
     }
 
     public String getReturnDate() {
@@ -56,11 +54,11 @@ public class Tour {
         this.returnDate = returnDate;
     }
 
-    public String getImge_url() {
-        return imge_url;
+    public String getImage() {
+        return image;
     }
 
-    public void setImge_url(String imge_url) {
-        this.imge_url = imge_url;
+    public void setImage(String image) {
+        this.image = image;
     }
 }

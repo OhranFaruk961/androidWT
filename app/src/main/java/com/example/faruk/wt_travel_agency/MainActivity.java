@@ -53,20 +53,28 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         mDrawerLayout.addDrawerListener(mToggle);
         mToggle.syncState();
         mainToolbar = (Toolbar) findViewById(R.id.navigation_actionbar);
+        addBtn = findViewById(R.id.add_tour);
         mNavigationView = findViewById(R.id.navigation_view);
         setSupportActionBar(mainToolbar);
-        getSupportActionBar().setTitle("WT Travel Agency");
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setTitle("WT Travel Agency");
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        }
         auth = FirebaseAuth.getInstance();
         tourListView = findViewById(R.id.tour_list);
         tourList = new ArrayList<>();
-        tourRecyclerAdapter = new TourRecyclerAdapter(tourList);
+        tourRecyclerAdapter = new TourRecyclerAdapter(this, tourList);
         tourListView.setLayoutManager(new LinearLayoutManager(this));
         tourListView.setAdapter(tourRecyclerAdapter);
         firebaseFirestore = FirebaseFirestore.getInstance();
         firebaseFirestore.collection("Tours").addSnapshotListener(new EventListener<QuerySnapshot>() {
             @Override
             public void onEvent(QuerySnapshot documentSnapshots, FirebaseFirestoreException e) {
+
+                if (e != null) {
+                    e.printStackTrace();
+                    return;
+                }
 
                 for(DocumentChange doc: documentSnapshots.getDocumentChanges()){
 
@@ -82,6 +90,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 
         mNavigationView.setNavigationItemSelectedListener(this);
+
+        addBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                sendToAddNewTour();
+            }
+        });
     }
 
     @Override
@@ -147,6 +162,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         startActivity(loginIntent);
     }
 
+    private void sendToAddNewTour() {
+        Intent addTourIntent = new Intent(MainActivity.this, AddTourActivity.class); //prebacuje nas na add tour
+        startActivity(addTourIntent);
+    }
     //endregion
 
 }
