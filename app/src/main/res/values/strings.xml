@@ -3,8 +3,8 @@
     <string name="pretraga_text">pretraga</string>
     <string name="postavke_racuna_text">Postavke racuna</string>
     <string name="odjava_text">Odjavi se</string>
-    <string name="select_from_gallery">Select from gallery</string>
-    <string name="capture_image">Capture Image</string>
+    <string name="select_from_gallery">Odaberi iz galerije</string>
+    <string name="capture_image">Uslikaj</string>
     <string name="otvori">Otvori</string>
     <string name="zatvori">Zatvori</string>
 </resources>

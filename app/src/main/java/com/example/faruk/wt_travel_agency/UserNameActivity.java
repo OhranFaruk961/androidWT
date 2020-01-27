@@ -60,6 +60,7 @@ import id.zelory.compressor.Compressor;
 
 public class UserNameActivity extends AppCompatActivity implements PopupMenu.OnMenuItemClickListener {
 
+    //region Privatne varijable
     private static final int REQUEST_STORAGE = 12340;
     private static final int PICK_IMAGE = 12341;
     private static final int CAPTURE_IMAGE = 12342;
@@ -75,7 +76,7 @@ public class UserNameActivity extends AppCompatActivity implements PopupMenu.OnM
     private File photoFileDoc = null;
     private Uri image_path;
     private String mImageFileLocation = "";
-
+    //endregion
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -83,6 +84,7 @@ public class UserNameActivity extends AppCompatActivity implements PopupMenu.OnM
         setContentView(R.layout.activity_user_name);
 
 
+        //region inicijalizacija
         firebaseAuth = FirebaseAuth.getInstance();
 
         storageReference = FirebaseStorage.getInstance().getReference();
@@ -96,6 +98,9 @@ public class UserNameActivity extends AppCompatActivity implements PopupMenu.OnM
         saveBtn = findViewById(R.id.save_btn);
 
         user_id = firebaseAuth.getCurrentUser().getUid();
+
+        //endregion
+
 
         db.collection("Users").document(user_id).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
             @Override
@@ -209,6 +214,8 @@ public class UserNameActivity extends AppCompatActivity implements PopupMenu.OnM
 
     }
 
+
+    //region Helper metode
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -403,4 +410,6 @@ public class UserNameActivity extends AppCompatActivity implements PopupMenu.OnM
     public static boolean isMediaDocument(Uri uri) {
         return "com.android.providers.media.documents".equals(uri.getAuthority());
     }
+
+    //endregion
 }

@@ -154,7 +154,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         sendToLogin();
     }
     private void sendToAccountSettings() {
-        Intent settingsIntent = new Intent(MainActivity.this,UserNameActivity.class);
+        Intent settingsIntent = new Intent(MainActivity.this,RegistracijaActivity.class);
         startActivity(settingsIntent);
     }
     private void sendToLogin() {
