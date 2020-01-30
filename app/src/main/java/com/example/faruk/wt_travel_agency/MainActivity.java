@@ -38,8 +38,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private NavigationView mNavigationView;
     private RecyclerView tourListView;
     private List<Tour> tourList;
+    private List<Reservation> reservationList;
     private FirebaseFirestore firebaseFirestore;
     private TourRecyclerAdapter tourRecyclerAdapter;
+    private FirebaseUser currentUser;
+    private TourAdminRecyclerAdapter tourAdminRecyclerAdapter;
 
 //endregion
 
@@ -48,6 +51,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        //region Inicijalizacija
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawerLayout);
         mToggle = new ActionBarDrawerToggle(this, mDrawerLayout, R.string.zatvori, R.string.otvori);
         mDrawerLayout.addDrawerListener(mToggle);
@@ -64,33 +68,28 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         tourListView = findViewById(R.id.tour_list);
         tourList = new ArrayList<>();
         tourRecyclerAdapter = new TourRecyclerAdapter(this, tourList);
+        tourAdminRecyclerAdapter = new TourAdminRecyclerAdapter(this,tourList);
         tourListView.setLayoutManager(new LinearLayoutManager(this));
-        tourListView.setAdapter(tourRecyclerAdapter);
         firebaseFirestore = FirebaseFirestore.getInstance();
-        firebaseFirestore.collection("Tours").addSnapshotListener(new EventListener<QuerySnapshot>() {
-            @Override
-            public void onEvent(QuerySnapshot documentSnapshots, FirebaseFirestoreException e) {
+        currentUser = FirebaseAuth.getInstance().getCurrentUser();
 
-                if (e != null) {
-                    e.printStackTrace();
-                    return;
-                }
+       if(currentUser != null){
+        String userEmail = currentUser.getEmail().toString();
+        //endregion
 
-                for(DocumentChange doc: documentSnapshots.getDocumentChanges()){
+        if(userEmail.equals("admin@mejl.com")){
 
-                    if(doc.getType() == DocumentChange.Type.ADDED){
+            openAdmin();
+        }
+        else {
 
-                        Tour tour = doc.getDocument().toObject(Tour.class);
-                        tourList.add(tour);
-                        tourRecyclerAdapter.notifyDataSetChanged();
-                    }
-                }
-            }
-        });
-
+            openUser();
+        }
+       }
+       else
+           openUser();
 
         mNavigationView.setNavigationItemSelectedListener(this);
-
         addBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -99,17 +98,17 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         });
     }
 
+
+
     @Override
     protected void onStart() {
         super.onStart();
-
-        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
         mainToolbar = (Toolbar) findViewById(R.id.navigation_actionbar);
         setSupportActionBar(mainToolbar);
        // getSupportActionBar().setTitle("WT");
-       // if (currentUser == null) {
-         //   sendToLogin();
-    //}
+       if (currentUser == null) {
+           sendToLogin();
+    }
     }
 
    // @Override
@@ -166,6 +165,57 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         Intent addTourIntent = new Intent(MainActivity.this, AddTourActivity.class); //prebacuje nas na add tour
         startActivity(addTourIntent);
     }
+
+    private void openUser() {
+
+        tourListView.setAdapter(tourRecyclerAdapter);
+        firebaseFirestore.collection("Tours").addSnapshotListener(new EventListener<QuerySnapshot>() {
+            @Override
+            public void onEvent(QuerySnapshot documentSnapshots, FirebaseFirestoreException e) {
+
+                if (e != null) {
+                    e.printStackTrace();
+                    return;
+                }
+
+                for(DocumentChange doc: documentSnapshots.getDocumentChanges()){
+
+                    if(doc.getType() == DocumentChange.Type.ADDED){
+
+                        Tour tour = doc.getDocument().toObject(Tour.class);
+                        tourList.add(tour);
+                        tourRecyclerAdapter.notifyDataSetChanged();
+                    }
+                }
+            }
+        });
+    }
+
+    private void openAdmin() {
+
+        tourListView.setAdapter(tourAdminRecyclerAdapter);
+        firebaseFirestore.collection("Tours").addSnapshotListener(new EventListener<QuerySnapshot>() {
+            @Override
+            public void onEvent(QuerySnapshot documentSnapshots, FirebaseFirestoreException e) {
+
+                if (e != null) {
+                    e.printStackTrace();
+                    return;
+                }
+
+                for(DocumentChange doc: documentSnapshots.getDocumentChanges()){
+
+                    if(doc.getType() == DocumentChange.Type.ADDED){
+
+                        Tour tour = doc.getDocument().toObject(Tour.class);
+                        tourList.add(tour);
+                        tourAdminRecyclerAdapter.notifyDataSetChanged();
+                    }
+                }
+            }
+        });
+    }
+
     //endregion
 
 }
