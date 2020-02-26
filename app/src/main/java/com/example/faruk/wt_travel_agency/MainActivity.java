@@ -41,6 +41,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private List<Reservation> reservationList;
     private FirebaseFirestore firebaseFirestore;
     private TourRecyclerAdapter tourRecyclerAdapter;
+    private ReservationRecyclerAdapter reservationRecyclerAdapter;
     private FirebaseUser currentUser;
     private TourAdminRecyclerAdapter tourAdminRecyclerAdapter;
 
@@ -69,13 +70,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         tourList = new ArrayList<>();
         tourRecyclerAdapter = new TourRecyclerAdapter(this, tourList);
         tourAdminRecyclerAdapter = new TourAdminRecyclerAdapter(this,tourList);
+        reservationList = new ArrayList<Reservation>();
+        reservationRecyclerAdapter = new ReservationRecyclerAdapter(this,reservationList);
         tourListView.setLayoutManager(new LinearLayoutManager(this));
         firebaseFirestore = FirebaseFirestore.getInstance();
         currentUser = FirebaseAuth.getInstance().getCurrentUser();
-
+        //endregion
        if(currentUser != null){
         String userEmail = currentUser.getEmail().toString();
-        //endregion
 
         if(userEmail.equals("admin@mejl.com")){
 
@@ -142,9 +144,40 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 sendToAccountSettings();
                 return  true;
 
+            case R.id.reservation:
+                sendToReservations();
+                return  true;
+
             default:
                 return  false;
         }
+    }
+
+    private void sendToReservations() {
+
+        tourListView.setAdapter(reservationRecyclerAdapter);
+        firebaseFirestore.collection("Reservations").addSnapshotListener(new EventListener<QuerySnapshot>() {
+            @Override
+            public void onEvent(QuerySnapshot documentSnapshots, FirebaseFirestoreException e) {
+
+                if (e != null) {
+                    e.printStackTrace();
+                    return;
+                }
+
+                for(DocumentChange doc: documentSnapshots.getDocumentChanges()){
+
+                    if(doc.getType() == DocumentChange.Type.ADDED){
+
+                        Reservation reservation = doc.getDocument().toObject(Reservation.class);
+                        reservationList.add(reservation);
+                        reservationRecyclerAdapter.notifyDataSetChanged();
+                    }
+                }
+            }
+        });
+
+
     }
 
     //region Helper methods
