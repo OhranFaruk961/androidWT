@@ -1,5 +1,6 @@
 package com.example.faruk.wt_travel_agency;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
@@ -11,17 +12,24 @@ import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
-import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ImageView;
+import android.widget.TextView;
 
 
+import com.bumptech.glide.Glide;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentChange;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
+import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
@@ -44,6 +52,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private ReservationRecyclerAdapter reservationRecyclerAdapter;
     private FirebaseUser currentUser;
     private TourAdminRecyclerAdapter tourAdminRecyclerAdapter;
+    private TextView usernameNavDrawer;
+    private ImageView profileImageNavDrawer;
+    private boolean isAdmin;
 
 //endregion
 
@@ -60,6 +71,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         mainToolbar = (Toolbar) findViewById(R.id.navigation_actionbar);
         addBtn = findViewById(R.id.add_tour);
         mNavigationView = findViewById(R.id.navigation_view);
+        usernameNavDrawer = mNavigationView.getHeaderView(0).findViewById(R.id.profile_username_nav);
+        profileImageNavDrawer = mNavigationView.getHeaderView(0).findViewById(R.id.profile_image_nav);
         setSupportActionBar(mainToolbar);
         if (getSupportActionBar() != null) {
             getSupportActionBar().setTitle("WT Travel Agency");
@@ -76,20 +89,29 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         firebaseFirestore = FirebaseFirestore.getInstance();
         currentUser = FirebaseAuth.getInstance().getCurrentUser();
         //endregion
-       if(currentUser != null){
-        String userEmail = currentUser.getEmail().toString();
 
-        if(userEmail.equals("admin@mejl.com")){
+        firebaseFirestore.collection("Users").document(currentUser.getUid()).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+            @SuppressLint("RestrictedApi")
+            @Override
+            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                if (!task.isSuccessful() || !task.getResult().exists()) return;
 
-            openAdmin();
-        }
-        else {
+                isAdmin = task.getResult().getBoolean("admin");
+                String username = task.getResult().getString("name");
+                String imageProfile = task.getResult().getString("image");
 
-            openUser();
-        }
-       }
-       else
-           openUser();
+                usernameNavDrawer.setText(username);
+                Glide.with(MainActivity.this).load(imageProfile).into(profileImageNavDrawer);
+
+                if (isAdmin)
+                    openAdmin();
+                else {
+                    openUser();
+                    addBtn.setVisibility(View.INVISIBLE);
+                }
+            }
+        });
+
 
         mNavigationView.setNavigationItemSelectedListener(this);
         addBtn.setOnClickListener(new View.OnClickListener() {
@@ -148,15 +170,51 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 sendToReservations();
                 return  true;
 
+            case R.id.home_screen:
+                sendToTourScreen();
+                return true;
+
             default:
                 return  false;
         }
     }
 
+    private void sendToTourScreen() {
+        tourListView.setAdapter(tourRecyclerAdapter);
+        tourList.clear();
+        firebaseFirestore.collection("Tours").addSnapshotListener(new EventListener<QuerySnapshot>() {
+            @Override
+            public void onEvent(QuerySnapshot documentSnapshots, FirebaseFirestoreException e) {
+
+                if (e != null) {
+                    e.printStackTrace();
+                    return;
+                }
+
+                for(DocumentChange doc: documentSnapshots.getDocumentChanges()){
+
+                    if(doc.getType() == DocumentChange.Type.ADDED){
+
+                        Tour tour = doc.getDocument().toObject(Tour.class);
+                        tourList.add(tour);
+                        tourRecyclerAdapter.notifyDataSetChanged();
+                    }
+                }
+            }
+        });
+    }
+
     private void sendToReservations() {
 
+        reservationList.clear();
         tourListView.setAdapter(reservationRecyclerAdapter);
-        firebaseFirestore.collection("Reservations").addSnapshotListener(new EventListener<QuerySnapshot>() {
+        Query collectionReference = null;
+        if (isAdmin)
+                collectionReference = firebaseFirestore.collection("Reservations");
+        else
+            collectionReference = firebaseFirestore.collection("Reservations").whereEqualTo("user_id", currentUser.getUid());
+
+        collectionReference.addSnapshotListener(new EventListener<QuerySnapshot>() {
             @Override
             public void onEvent(QuerySnapshot documentSnapshots, FirebaseFirestoreException e) {
 

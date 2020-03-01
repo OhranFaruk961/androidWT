@@ -10,24 +10,27 @@
     <RelativeLayout
         android:id="@+id/relativeLayout"
         android:layout_width="match_parent"
-        android:layout_height="140dp"
-        android:background="@mipmap/ic_launcher_foreground"
-        tools:layout_editor_absoluteX="40dp"
-        tools:layout_editor_absoluteY="16dp">
-
-
-    </RelativeLayout>
-
-    <TextView
-        android:id="@+id/textView7"
-        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Korisničko ime"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.498"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/relativeLayout"
-        app:layout_constraintVertical_bias="0.127" />
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageView
+            android:id="@+id/profile_image_nav"
+            android:layout_width="match_parent"
+            android:layout_height="140dp"
+            android:src="@mipmap/ic_launcher_foreground" />
+
+        <TextView
+            android:id="@+id/profile_username_nav"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/profile_image_nav"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="10dp"
+            android:text="Korisničko ime" />
+
+    </RelativeLayout>
 
 </android.support.constraint.ConstraintLayout>

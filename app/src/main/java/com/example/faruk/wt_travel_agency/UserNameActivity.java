@@ -150,10 +150,11 @@ public class UserNameActivity extends AppCompatActivity implements PopupMenu.OnM
                                 if (task.isSuccessful()) {
                                     Uri downloadUri = task.getResult();
 
-                                    Map<String, String> userMap = new HashMap<>();
+                                    Map<String, Object> userMap = new HashMap<>();
 
                                     userMap.put("name", user_name);
                                     userMap.put("image", String.valueOf(downloadUri));
+                                    userMap.put("admin", false);
 
                                     db.collection("Users").document(user_id).set(userMap).addOnCompleteListener(new OnCompleteListener<Void>() {
                                         @Override
