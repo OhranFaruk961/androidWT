@@ -103,7 +103,7 @@ public class TourRecyclerAdapter extends RecyclerView.Adapter<TourRecyclerAdapte
             destinationView.setText(model.getDestination());
             departureView.setText(model.getDepartureDate());
             returnDateView.setText((model.getReturnDate() != null && !model.getReturnDate().isEmpty()) ? "- " + model.getReturnDate(): "");
-            priceView.setText(model.getPrice());
+            priceView.setText(model.getPrice() + " KM");
 
             if (model.getImage() != null && !model.getImage().isEmpty())
                 Glide.with(mContext).load(model.getImage()).into(imageView);
@@ -136,7 +136,7 @@ public class TourRecyclerAdapter extends RecyclerView.Adapter<TourRecyclerAdapte
 
                 if(task.isSuccessful()){
 
-                   // Toast.makeText(MainActivity.this,"Putovanje uspješno dodano", Toast.LENGTH_LONG).show();
+                    Toast.makeText(mActivity,"Putovanje uspješno dodano", Toast.LENGTH_LONG).show();
                     //Intent mainPage = new Intent(AddTourActivity.this,MainActivity.class);
                     //startActivity(mainPage);
                     //finish();//ovo onemogucava back button ?

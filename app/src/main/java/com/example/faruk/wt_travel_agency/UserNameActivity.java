@@ -201,7 +201,6 @@ public class UserNameActivity extends AppCompatActivity implements PopupMenu.OnM
                         Toast.makeText(UserNameActivity.this, "Nemate permisije", Toast.LENGTH_LONG).show();
                         ActivityCompat.requestPermissions(UserNameActivity.this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, REQUEST_STORAGE);
                     } else {
-                        Toast.makeText(UserNameActivity.this, "Vec imate permisije", Toast.LENGTH_LONG).show();
                         selectImage();
                     }
 

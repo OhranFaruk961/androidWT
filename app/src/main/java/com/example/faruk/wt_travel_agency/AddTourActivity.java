@@ -133,7 +133,6 @@ public class AddTourActivity extends AppCompatActivity implements PopupMenu.OnMe
                         Toast.makeText(AddTourActivity.this, "Nemate permisije", Toast.LENGTH_LONG).show();
                         ActivityCompat.requestPermissions(AddTourActivity.this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, REQUEST_STORAGE);
                     } else {
-                        Toast.makeText(AddTourActivity.this, "Vec imate permisije", Toast.LENGTH_LONG).show();
                         selectImage();
                     }
 

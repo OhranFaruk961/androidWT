@@ -28,6 +28,7 @@ public class RegistracijaActivity extends AppCompatActivity {
     private ProgressBar reg_progress;
 
     private FirebaseAuth auth;
+    private FirebaseUser mCurrentUser;
 //endregion
 
     //region Logic
@@ -38,7 +39,7 @@ public class RegistracijaActivity extends AppCompatActivity {
 
        //region Initialization
         auth = FirebaseAuth.getInstance();
-
+        mCurrentUser = auth.getCurrentUser();
         reg_email_field = (EditText) findViewById(R.id.reg_email);
 
         reg_pass_field = (EditText) findViewById(R.id.reg_password);
@@ -49,6 +50,9 @@ public class RegistracijaActivity extends AppCompatActivity {
 
         reg_progress = (ProgressBar) findViewById(R.id.registration_progress);
 
+        if (mCurrentUser != null) {
+            reg_email_field.setText(mCurrentUser.getEmail());
+        }
         //endregion
 
         reg_btn.setOnClickListener(new View.OnClickListener() {

@@ -1,7 +1,9 @@
 package com.example.faruk.wt_travel_agency;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
@@ -18,6 +20,7 @@ import com.bumptech.glide.Glide;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
@@ -63,7 +66,20 @@ public class ReservationRecyclerAdapter extends RecyclerView.Adapter<Reservation
         deleteReservationBtn.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                Toast.makeText(v.getContext(),"rezervacija obrisana  "+position,Toast.LENGTH_LONG).show();
+                AlertDialog dialog = new AlertDialog.Builder(mActivity)
+                        .setMessage("Da li želite obrisati")
+                        .setNegativeButton("NE", null)
+                        .setPositiveButton("DA", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                CollectionReference reference = FirebaseFirestore.getInstance().collection("Reservations");
+                                reference.document(model.getId()).delete();
+                                Toast.makeText(mActivity,"Rezervacija obrisana",Toast.LENGTH_LONG).show();
+                              reservationList.remove(position);
+                              notifyDataSetChanged();
+                            }
+                        }).create();
+                dialog.show();
                 return false;
             }
         });

@@ -89,28 +89,29 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         firebaseFirestore = FirebaseFirestore.getInstance();
         currentUser = FirebaseAuth.getInstance().getCurrentUser();
         //endregion
+        if (currentUser != null) {
+            firebaseFirestore.collection("Users").document(currentUser.getUid()).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                @SuppressLint("RestrictedApi")
+                @Override
+                public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                    if (!task.isSuccessful() || !task.getResult().exists()) return;
 
-        firebaseFirestore.collection("Users").document(currentUser.getUid()).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-            @SuppressLint("RestrictedApi")
-            @Override
-            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                if (!task.isSuccessful() || !task.getResult().exists()) return;
+                    isAdmin = task.getResult().getBoolean("admin");
+                    String username = task.getResult().getString("name");
+                    String imageProfile = task.getResult().getString("image");
 
-                isAdmin = task.getResult().getBoolean("admin");
-                String username = task.getResult().getString("name");
-                String imageProfile = task.getResult().getString("image");
+                    usernameNavDrawer.setText(username);
+                    Glide.with(MainActivity.this).load(imageProfile).into(profileImageNavDrawer);
 
-                usernameNavDrawer.setText(username);
-                Glide.with(MainActivity.this).load(imageProfile).into(profileImageNavDrawer);
-
-                if (isAdmin)
-                    openAdmin();
-                else {
-                    openUser();
-                    addBtn.setVisibility(View.INVISIBLE);
+                    if (isAdmin)
+                        openAdmin();
+                    else {
+                        openUser();
+                        addBtn.setVisibility(View.INVISIBLE);
+                    }
                 }
-            }
-        });
+            });
+        }
 
 
         mNavigationView.setNavigationItemSelectedListener(this);
@@ -227,7 +228,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
                     if(doc.getType() == DocumentChange.Type.ADDED){
 
-                        Reservation reservation = doc.getDocument().toObject(Reservation.class);
+                        Reservation reservation = doc.getDocument().toObject(Reservation.class).withId(doc.getDocument().getId());
                         reservationList.add(reservation);
                         reservationRecyclerAdapter.notifyDataSetChanged();
                     }
