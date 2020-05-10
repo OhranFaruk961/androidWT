@@ -183,26 +183,29 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private void sendToTourScreen() {
         tourListView.setAdapter(tourRecyclerAdapter);
         tourList.clear();
-        firebaseFirestore.collection("Tours").addSnapshotListener(new EventListener<QuerySnapshot>() {
-            @Override
-            public void onEvent(QuerySnapshot documentSnapshots, FirebaseFirestoreException e) {
+        if (currentUser != null) {
+            firebaseFirestore.collection("Users").document(currentUser.getUid()).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                @SuppressLint("RestrictedApi")
+                @Override
+                public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                    if (!task.isSuccessful() || !task.getResult().exists()) return;
 
-                if (e != null) {
-                    e.printStackTrace();
-                    return;
-                }
+                    isAdmin = task.getResult().getBoolean("admin");
+                    String username = task.getResult().getString("name");
+                    String imageProfile = task.getResult().getString("image");
 
-                for(DocumentChange doc: documentSnapshots.getDocumentChanges()){
+                    usernameNavDrawer.setText(username);
+                    Glide.with(MainActivity.this).load(imageProfile).into(profileImageNavDrawer);
 
-                    if(doc.getType() == DocumentChange.Type.ADDED){
-
-                        Tour tour = doc.getDocument().toObject(Tour.class);
-                        tourList.add(tour);
-                        tourRecyclerAdapter.notifyDataSetChanged();
+                    if (isAdmin)
+                        openAdmin();
+                    else {
+                        openUser();
+                        addBtn.setVisibility(View.INVISIBLE);
                     }
                 }
-            }
-        });
+            });
+        }
     }
 
     private void sendToReservations() {
@@ -274,7 +277,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
                     if(doc.getType() == DocumentChange.Type.ADDED){
 
-                        Tour tour = doc.getDocument().toObject(Tour.class);
+                        Tour tour = doc.getDocument().toObject(Tour.class).withId(doc.getDocument().getId());
                         tourList.add(tour);
                         tourRecyclerAdapter.notifyDataSetChanged();
                     }
@@ -299,7 +302,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
                     if(doc.getType() == DocumentChange.Type.ADDED){
 
-                        Tour tour = doc.getDocument().toObject(Tour.class);
+                        Tour tour = doc.getDocument().toObject(Tour.class).withId(doc.getDocument().getId());
                         tourList.add(tour);
                         tourAdminRecyclerAdapter.notifyDataSetChanged();
                     }

@@ -1,6 +1,13 @@
 package com.example.faruk.wt_travel_agency;
 
+import android.support.annotation.NonNull;
+
+import com.google.firebase.firestore.Exclude;
+
 public class Tour {
+
+    @Exclude
+    private String id;
 
     private String destination;
 
@@ -20,6 +27,19 @@ public class Tour {
         this.departureDate = departureDate;
         this.returnDate = returnDate;
         this.image = image;
+    }
+
+    public <T extends Tour> T withId(@NonNull final String id) {
+        this.id = id;
+        return (T) this;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 
     public String getDestination() {

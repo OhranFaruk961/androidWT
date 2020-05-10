@@ -1,7 +1,10 @@
 package com.example.faruk.wt_travel_agency;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
@@ -17,7 +20,10 @@ import com.bumptech.glide.Glide;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
@@ -36,6 +42,7 @@ public class TourAdminRecyclerAdapter extends RecyclerView.Adapter<TourAdminRecy
     private FirebaseFirestore firebaseFirestore;
     private FirebaseAuth firebaseAuth;
     private  String current_user_id;
+    FirebaseUser currentUser;
 
     //endregion
 
@@ -60,6 +67,7 @@ public class TourAdminRecyclerAdapter extends RecyclerView.Adapter<TourAdminRecy
 
         final Tour model = tourList.get(position);
         holder.bind(mActivity, model);
+        holder.removeTour(model, position);
     }
 
 
@@ -87,6 +95,43 @@ public class TourAdminRecyclerAdapter extends RecyclerView.Adapter<TourAdminRecy
             priceView = mView.findViewById(R.id.tour_price_admin);
             imageView = mView.findViewById(R.id.tour_image_admin);
 
+        }
+
+        public void removeTour(final Tour model, final int position) {
+            mView.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View view) {
+                    if (FirebaseAuth.getInstance().getCurrentUser() != null)
+                        currentUser = FirebaseAuth.getInstance().getCurrentUser();
+                    FirebaseFirestore.getInstance().collection("Users").document(currentUser.getUid()).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                        @SuppressLint("RestrictedApi")
+                        @Override
+                        public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                            if (!task.isSuccessful() || !task.getResult().exists()) return;
+
+                            boolean isAdmin = task.getResult().getBoolean("admin");
+
+                            if (isAdmin) {
+                                AlertDialog dialog = new AlertDialog.Builder(mActivity)
+                                        .setMessage("Da li želite obrisati")
+                                        .setNegativeButton("NE", null)
+                                        .setPositiveButton("DA", new DialogInterface.OnClickListener() {
+                                            @Override
+                                            public void onClick(DialogInterface dialogInterface, int i) {
+                                                CollectionReference reference = FirebaseFirestore.getInstance().collection("Tours");
+                                                reference.document(model.getId()).delete();
+                                                Toast.makeText(mActivity,"Tour obrisan",Toast.LENGTH_LONG).show();
+                                                tourList.remove(position);
+                                                notifyDataSetChanged();
+                                            }
+                                        }).create();
+                                dialog.show();
+                            }
+                        }
+                    });
+                    return true;
+                }
+            });
         }
 
         public void bind(Context mContext, Tour model) {
