@@ -158,62 +158,87 @@ public class AddTourActivity extends AppCompatActivity implements PopupMenu.OnMe
 
     private void SaveTour(final String destination, final String price, final String departureDate, final String returnDate, final String current_user_id ) {
 
-        File resizeImage = null;
-        try {
-            resizeImage = new Compressor(AddTourActivity.this).compressToFile(photoFileDoc);
+        if (photoFileDoc != null) {
+            File resizeImage = null;
+            try {
+                resizeImage = new Compressor(AddTourActivity.this).compressToFile(photoFileDoc);
 
-            Uri imageUri = Uri.fromFile(resizeImage);
-            final StorageReference storageImageReference = storageReference.child("image/" + imageUri.getLastPathSegment() + System.currentTimeMillis());
-            UploadTask uploadTask = storageImageReference.putFile(imageUri);
+                Uri imageUri = Uri.fromFile(resizeImage);
+                final StorageReference storageImageReference = storageReference.child("image/" + imageUri.getLastPathSegment() + System.currentTimeMillis());
+                UploadTask uploadTask = storageImageReference.putFile(imageUri);
 
-            Task<Uri> urlTask = uploadTask.continueWithTask(new Continuation<UploadTask.TaskSnapshot, Task<Uri>>() {
-                @Override
-                public Task<Uri> then(@NonNull Task<UploadTask.TaskSnapshot> task) throws Exception {
-                    if (!task.isSuccessful()) {
-                        throw task.getException();
+                Task<Uri> urlTask = uploadTask.continueWithTask(new Continuation<UploadTask.TaskSnapshot, Task<Uri>>() {
+                    @Override
+                    public Task<Uri> then(@NonNull Task<UploadTask.TaskSnapshot> task) throws Exception {
+                        if (!task.isSuccessful()) {
+                            throw task.getException();
+                        }
+
+                        // Continue with the task to get the download URL
+                        return storageImageReference.getDownloadUrl();
                     }
+                });
+                urlTask.addOnCompleteListener(new OnCompleteListener<Uri>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Uri> task) {
+                        if (task.isSuccessful()) {
+                            Uri downloadUri = task.getResult();
 
-                    // Continue with the task to get the download URL
-                    return storageImageReference.getDownloadUrl();
-                }
-            });
-            urlTask.addOnCompleteListener(new OnCompleteListener<Uri>() {
-                @Override
-                public void onComplete(@NonNull Task<Uri> task) {
-                    if (task.isSuccessful()) {
-                        Uri downloadUri = task.getResult();
+                            Map<String, Object> tourMap = new HashMap<>();
+                            tourMap.put("destination",destination);
+                            tourMap.put("price",price);
+                            tourMap.put("departureDate",departureDate);
+                            tourMap.put("returnDate",returnDate);
+                            tourMap.put("user_id",current_user_id);
+                            tourMap.put("image", downloadUri.toString());
 
-                        Map<String, Object> tourMap = new HashMap<>();
-                        tourMap.put("destination",destination);
-                        tourMap.put("price",price);
-                        tourMap.put("departureDate",departureDate);
-                        tourMap.put("returnDate",returnDate);
-                        tourMap.put("user_id",current_user_id);
-                        tourMap.put("image", downloadUri.toString());
+                            firebaseFirestore.collection("Tours").add(tourMap).addOnCompleteListener(new OnCompleteListener<DocumentReference>() {
+                                @Override
+                                public void onComplete(@NonNull Task<DocumentReference> task) {
 
-                        firebaseFirestore.collection("Tours").add(tourMap).addOnCompleteListener(new OnCompleteListener<DocumentReference>() {
-                            @Override
-                            public void onComplete(@NonNull Task<DocumentReference> task) {
+                                    if(task.isSuccessful()){
+                                        Toast.makeText(AddTourActivity.this,"Putovanje uspješno dodano",Toast.LENGTH_LONG).show();
+                                        Intent mainPage = new Intent(AddTourActivity.this,MainActivity.class);
+                                        startActivity(mainPage);
+                                        finish();//ovo onemogucava back button ?
+                                    }else {
 
-                                if(task.isSuccessful()){
-                                    Toast.makeText(AddTourActivity.this,"Putovanje uspješno dodano",Toast.LENGTH_LONG).show();
-                                    Intent mainPage = new Intent(AddTourActivity.this,MainActivity.class);
-                                    startActivity(mainPage);
-                                    finish();//ovo onemogucava back button ?
-                                }else {
-
+                                    }
+                                    // addTour_progress.setVisibility(View.INVISIBLE);
                                 }
-                                // addTour_progress.setVisibility(View.INVISIBLE);
-                            }
-                        });
-                    } else {
-                        String error = task.getException().getMessage();
-                        Toast.makeText(AddTourActivity.this, "Greška na serveru", Toast.LENGTH_LONG).show();
+                            });
+                        } else {
+                            String error = task.getException().getMessage();
+                            Toast.makeText(AddTourActivity.this, "Greška na serveru", Toast.LENGTH_LONG).show();
+                        }
                     }
+                });
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } else {
+            Map<String, Object> tourMap = new HashMap<>();
+            tourMap.put("destination",destination);
+            tourMap.put("price",price);
+            tourMap.put("departureDate",departureDate);
+            tourMap.put("returnDate",returnDate);
+            tourMap.put("user_id",current_user_id);
+
+            firebaseFirestore.collection("Tours").add(tourMap).addOnCompleteListener(new OnCompleteListener<DocumentReference>() {
+                @Override
+                public void onComplete(@NonNull Task<DocumentReference> task) {
+
+                    if(task.isSuccessful()){
+                        Toast.makeText(AddTourActivity.this,"Putovanje uspješno dodano",Toast.LENGTH_LONG).show();
+                        Intent mainPage = new Intent(AddTourActivity.this,MainActivity.class);
+                        startActivity(mainPage);
+                        finish();//ovo onemogucava back button ?
+                    }else {
+
+                    }
+                    // addTour_progress.setVisibility(View.INVISIBLE);
                 }
             });
-        } catch (IOException e) {
-            e.printStackTrace();
         }
 
 

@@ -125,68 +125,92 @@ public class UserNameActivity extends AppCompatActivity implements PopupMenu.OnM
                 if (!TextUtils.isEmpty(user_name)) {
                     user_id = firebaseAuth.getCurrentUser().getUid();
 
-                    File resizeImage = null;
-                    try {
-                        resizeImage = new Compressor(UserNameActivity.this).compressToFile(photoFileDoc);
+                    if (photoFileDoc != null) {
+                        File resizeImage = null;
+                        try {
+                            resizeImage = new Compressor(UserNameActivity.this).compressToFile(photoFileDoc);
 
-                        Uri imageUri = Uri.fromFile(resizeImage);
-                        final StorageReference storageImageReference = storageReference.child("image/" + imageUri.getLastPathSegment() + System.currentTimeMillis());
-                        UploadTask uploadTask = storageImageReference.putFile(imageUri);
+                            Uri imageUri = Uri.fromFile(resizeImage);
+                            final StorageReference storageImageReference = storageReference.child("image/" + imageUri.getLastPathSegment() + System.currentTimeMillis());
+                            UploadTask uploadTask = storageImageReference.putFile(imageUri);
 
-                        Task<Uri> urlTask = uploadTask.continueWithTask(new Continuation<UploadTask.TaskSnapshot, Task<Uri>>() {
-                            @Override
-                            public Task<Uri> then(@NonNull Task<UploadTask.TaskSnapshot> task) throws Exception {
-                                if (!task.isSuccessful()) {
-                                    throw task.getException();
+                            Task<Uri> urlTask = uploadTask.continueWithTask(new Continuation<UploadTask.TaskSnapshot, Task<Uri>>() {
+                                @Override
+                                public Task<Uri> then(@NonNull Task<UploadTask.TaskSnapshot> task) throws Exception {
+                                    if (!task.isSuccessful()) {
+                                        throw task.getException();
+                                    }
+
+                                    // Continue with the task to get the download URL
+                                    return storageImageReference.getDownloadUrl();
                                 }
+                            });
+                            urlTask.addOnCompleteListener(new OnCompleteListener<Uri>() {
+                                @Override
+                                public void onComplete(@NonNull Task<Uri> task) {
+                                    if (task.isSuccessful()) {
+                                        Uri downloadUri = task.getResult();
 
-                                // Continue with the task to get the download URL
-                                return storageImageReference.getDownloadUrl();
-                            }
-                        });
-                        urlTask.addOnCompleteListener(new OnCompleteListener<Uri>() {
-                            @Override
-                            public void onComplete(@NonNull Task<Uri> task) {
-                                if (task.isSuccessful()) {
-                                    Uri downloadUri = task.getResult();
+                                        Map<String, Object> userMap = new HashMap<>();
 
-                                    Map<String, Object> userMap = new HashMap<>();
+                                        userMap.put("name", user_name);
+                                        userMap.put("image", String.valueOf(downloadUri));
+                                        userMap.put("admin", false);
 
-                                    userMap.put("name", user_name);
-                                    userMap.put("image", String.valueOf(downloadUri));
-                                    userMap.put("admin", false);
+                                        db.collection("Users").document(user_id).set(userMap).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                            @Override
+                                            public void onComplete(@NonNull Task<Void> task) {
 
-                                    db.collection("Users").document(user_id).set(userMap).addOnCompleteListener(new OnCompleteListener<Void>() {
-                                        @Override
-                                        public void onComplete(@NonNull Task<Void> task) {
+                                                if (task.isSuccessful()) {
 
-                                            if (task.isSuccessful()) {
+                                                    Toast.makeText(UserNameActivity.this, "Korisnicko ime snimljeno", Toast.LENGTH_LONG).show();
+                                                    Intent mainIntent = new Intent(UserNameActivity.this, MainActivity.class);
+                                                    startActivity(mainIntent);
+                                                    finish();
 
-                                                Toast.makeText(UserNameActivity.this, "Korisnicko ime snimljeno", Toast.LENGTH_LONG).show();
-                                                Intent mainIntent = new Intent(UserNameActivity.this, MainActivity.class);
-                                                startActivity(mainIntent);
-                                                finish();
+                                                } else {
+                                                    String error = task.getException().getMessage();
+                                                    Toast.makeText(UserNameActivity.this, "Greška na serveru", Toast.LENGTH_LONG).show();
+                                                }
 
-                                            } else {
-                                                String error = task.getException().getMessage();
-                                                Toast.makeText(UserNameActivity.this, "Greška na serveru", Toast.LENGTH_LONG).show();
+
                                             }
+                                        });
+                                    } else {
+                                        String error = task.getException().getMessage();
+                                        Toast.makeText(UserNameActivity.this, "Greška na serveru", Toast.LENGTH_LONG).show();
+                                    }
+                                }
+                            });
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    } else {
 
 
-                                        }
-                                    });
+                        Map<String, Object> userMap = new HashMap<>();
+                        userMap.put("name", user_name);
+                        userMap.put("admin", false);
+
+                        db.collection("Users").document(user_id).set(userMap).addOnCompleteListener(new OnCompleteListener<Void>() {
+                            @Override
+                            public void onComplete(@NonNull Task<Void> task) {
+
+                                if (task.isSuccessful()) {
+
+                                    Toast.makeText(UserNameActivity.this, "Korisnicko ime snimljeno", Toast.LENGTH_LONG).show();
+                                    Intent mainIntent = new Intent(UserNameActivity.this, MainActivity.class);
+                                    startActivity(mainIntent);
+                                    finish();
+
                                 } else {
                                     String error = task.getException().getMessage();
                                     Toast.makeText(UserNameActivity.this, "Greška na serveru", Toast.LENGTH_LONG).show();
                                 }
                             }
                         });
-                    } catch (IOException e) {
-                        e.printStackTrace();
                     }
                 }
-
-
             }
         });
 
